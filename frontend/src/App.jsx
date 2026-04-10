@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import LiveStatus from "./components/LiveStatus.jsx";
 import Header from "./components/Header.jsx";
 import SummaryCards from "./components/SummaryCards.jsx";
@@ -60,15 +59,54 @@ export default function App() {
     setLoading(true);
     setError(null);
 
+    const selectedFile = file;
+
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", selectedFile);
 
     try {
-      const response = await axios.post(ANALYZE_URL, formData);
-      const data = response?.data ?? {};
+      const response = await fetch(
+        "https://sentinelai-zuqj.onrender.com/analyze",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-      const nextLogs = data.logs ?? [];
-      const nextThreats = data.threats ?? [];
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
+
+      if (!response.ok) {
+        const detail = data?.detail;
+        const message =
+          typeof detail === "string"
+            ? detail
+            : Array.isArray(detail)
+              ? detail
+                  .map((item) =>
+                    typeof item === "string"
+                      ? item
+                      : item?.msg ?? JSON.stringify(item)
+                  )
+                  .join("; ")
+              : data?.message ??
+                `Request failed (${response.status} ${response.statusText || ""})`.trim();
+        setThreats([]);
+        setAllLogs([]);
+        setBlockedIPs([]);
+        setHasAnalyzed(false);
+        setError(message);
+        return;
+      }
+
+      console.log(data);
+
+      const nextLogs = data?.logs ?? [];
+      const nextThreats = data?.threats ?? [];
 
       setAllLogs(Array.isArray(nextLogs) ? nextLogs : []);
       setThreats(Array.isArray(nextThreats) ? nextThreats : []);
@@ -82,9 +120,8 @@ export default function App() {
       setBlockedIPs([]);
       setHasAnalyzed(false);
       setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Could not reach the API. Is the backend running on port 8001?"
+        err?.message ||
+          "Could not reach the API. Check your connection and try again."
       );
     } finally {
       setLoading(false);

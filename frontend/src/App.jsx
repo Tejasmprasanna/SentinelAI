@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 
 const ANALYZE_URL = "https://sentinelai-zuqj.onrender.com/analyze";
 
 export default function App() {
+  const [file, setFile] = useState(null);
+  const [allLogs, setAllLogs] = useState([]);
+  const [threats, setThreats] = useState([]);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [tab, setTab] = useState("threats");
 
   const handleAnalyze = async () => {
     try {

@@ -8,7 +8,9 @@ app = FastAPI(title="SentinelAI", description="Real-Time AI Cyber Attack Radar")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://sentinel-ai-dusky.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

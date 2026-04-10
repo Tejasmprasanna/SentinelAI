@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from attack_detector import detect_attacks
@@ -8,10 +8,8 @@ app = FastAPI(title="SentinelAI", description="Real-Time AI Cyber Attack Radar")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://sentinel-ai-dusky.vercel.app"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -23,7 +21,7 @@ def home():
 
 
 @app.post("/analyze")
-async def analyze(file: UploadFile = File(...)):
+async def analyze(request: Request, file: UploadFile = File(...)):
     raw = await file.read()
     try:
         text = raw.decode("utf-8")
